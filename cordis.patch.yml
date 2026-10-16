@@ -1,0 +1,8 @@
+# This bundle layer inserts the desktop-restart plugin process-wide.
+#
+# The entry name is PATH-RELATIVE on purpose: DSH anchors a relative `name:` to
+# the directory of the patch file that declared it, so this row always loads the
+# bundle's own `index.js` whatever the install folder is called.
+- insert:
+    - id: desktop-restart
+      name: './index.js'

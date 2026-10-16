@@ -1,0 +1,60 @@
+{
+  "name": "dsh-sidebar-restart",
+  "version": "0.1.0",
+  "description": "Adds a Restart row to the DSH sidebar foot beside Settings: the desktop app restarts itself out-of-process, then the tab reloads so a freshly installed plugin bundle is actually picked up.",
+  "type": "module",
+  "license": "MIT",
+  "author": "DONGBIN007",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DONGBIN007/dsh-sidebar-restart.git"
+  },
+  "homepage": "https://github.com/DONGBIN007/dsh-sidebar-restart#readme",
+  "bugs": {
+    "url": "https://github.com/DONGBIN007/dsh-sidebar-restart/issues"
+  },
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "restart",
+    "desktop",
+    "sidebar"
+  ],
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib",
+    "locale",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node test/target.test.mjs && node test/guard.test.mjs && node test/helper-compile.test.mjs && node test/client.test.mjs && node test/host.test.mjs",
+    "prepublishOnly": "node tools/prepublish-check.mjs"
+  }
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Restart">
+  <g fill="none" stroke="#247bbf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 32a20 20 0 1 1-6.2-14.4" />
+    <path d="M52.4 9.6V22H40" />
+  </g>
+</svg>

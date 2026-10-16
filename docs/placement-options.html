@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>重启按钮：与齿轮对齐后的形态</title>
+<style>
+  :root{
+    /* Light theme values, read from the shipped theme so the preview is honest. */
+    --bg:#ffffff; --panel:#ffffff; --hi:#f1f3f6; --line:#e6e8eb;
+    --label-primary:#16181d; --label-secondary:#5c6370; --border:#dfe2e6;
+    --accent:#d97757; --radius-md:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f5f6f8;color:#16181d;
+       font:14px/1.5 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{display:flex;gap:0;align-items:stretch}
+  .col{width:470px;padding:18px 16px 22px;border-right:1px solid #e2e4e8;background:#fff}
+  .col:last-child{border-right:0}
+  h2{margin:0 0 3px;font-size:16px;font-weight:600}
+  .tag{display:inline-block;margin:0 0 5px;padding:1px 8px;border-radius:999px;
+       font-size:11px;font-weight:600;background:rgba(78,163,107,.14);color:#2f7d4f;
+       border:1px solid rgba(78,163,107,.4)}
+  .tag.cur{background:rgba(217,119,87,.14);color:#a9522f;border-color:rgba(217,119,87,.4)}
+  .why{margin:6px 0 14px;font-size:12.5px;color:#5c6370;min-height:56px}
+  .why code{background:#f1f3f6;padding:0 4px;border-radius:4px;font-size:12px}
+  .side{background:#fff;border:1px solid #e2e4e8;border-radius:10px;
+        padding:14px 10px 12px;display:flex;flex-direction:column;gap:6px;min-height:290px}
+  .ghost{height:26px;border-radius:6px;background:#eef0f3}
+  .ghost.s{height:18px;width:70%}
+  .ghost.m{height:18px;width:88%}
+  .spacer{flex:1}
+  .pop{background:#fff;border:1px solid #e2e4e8;border-radius:12px;
+       padding:6px;box-shadow:0 16px 40px rgba(15,23,42,.14)}
+  .pop .name{padding:8px 10px 9px;font-weight:600}
+  .pop .sep{height:1px;background:var(--line);margin:2px 4px 6px}
+  .row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13.5px}
+  .row .ic{width:16px;height:16px;flex:0 0 16px;display:flex;color:#5c6370}
+  .row .tx{flex:1}
+  .row .kb{font-size:12px;color:#9aa1ad}
+  .row.hot{background:var(--hi)}
+  .row.ours{outline:1.5px solid var(--accent);outline-offset:-1px;background:rgba(217,119,87,.09)}
+  .row.ours .ic{color:#16181d}
+  /* the host's own footer, with the label, matching the gear row */
+  .foot{display:flex;flex-direction:column;gap:0;padding:4px 0 2px;border-top:1px solid var(--line)}
+  .gear{
+    box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:42px;
+    margin:4px 0;padding:0 10px 0 8px;border:none;border-radius:var(--radius-md);
+    background:transparent;color:var(--label-primary);font:inherit;font-size:14px;line-height:22px;
+    cursor:pointer;
+  }
+  .gear:hover{background:var(--hi)}
+  .gear .ic{width:16px;height:16px;flex:none;display:flex}
+  .gear.ours{outline:1.5px solid var(--accent);outline-offset:-1px}
+  /* rail: 56px column, icon only */
+  .railbox{width:56px;background:#fff;border:1px solid #e2e4e8;border-radius:10px;
+           padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:12px}
+  .railbtn{width:36px;height:36px;margin:8px 0 10px;padding:0;border:none;
+           border-radius:var(--radius-md);   /* 12px — the gear's radius, NOT 50% */
+           display:flex;align-items:center;justify-content:center;background:transparent;
+           color:var(--label-primary);cursor:pointer}
+  .railbtn:hover{background:var(--hi)}
+  .railbtn.ours{outline:1.5px solid var(--accent)}
+  .label{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .note{margin-top:10px;font-size:11.5px;color:#6b7280}
+  .note b{color:#16181d}
+  .grid{display:flex;gap:10px}
+  svg{display:block}
+  .kbd{font-size:12px;color:#9aa1ad;margin-left:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- WIDE (desktop sidebar, and the mobile drawer) -->
+  <section class="col">
+    <h2>宽栏（桌面侧边栏 / 手机抽屉）</h2>
+    <span class="tag">现在（图标 + 文字）</span>
+    <p class="why">按钮与旁边的齿轮同一行样式：颜色 <code>--dsw-alias-label-primary</code>、
+      行高 42px、字号 14px/22px、圆角 <code>--dsw-radius-md</code>、图标 16px。
+      文字「重启」与齿轮的「设置」同一字体、同一颜色、同一行。</p>
+    <div class="side">
+      <div class="ghost s"></div><div class="ghost m"></div><div class="ghost s"></div>
+      <div class="spacer"></div>
+      <div class="foot">
+        <button class="gear ours">
+          <span class="ic" data-i="refresh"></span>
+          <span class="label">重启</span>
+        </button>
+        <button class="gear">
+          <span class="ic" data-i="gear"></span>
+          <span class="label">设置</span>
+          <span class="kbd">Ctrl+,</span>
+        </button>
+      </div>
+    </div>
+    <p class="note">左：本插件 · 右：宿主齿轮。两者<b>行高、字号、颜色完全一致</b>。</p>
+  </section>
+
+  <!-- RAIL -->
+  <section class="col">
+    <h2>收起成 56px 导轨</h2>
+    <span class="tag">图标居中 · 无文字</span>
+    <p class="why">这是宿主自己的规矩：齿轮在本栏也变成 <b>36×36 圆角方块、只留图标</b>，
+      我没有自创断点，完全跟随 <code>wide</code>。图标从 16px 放大到 18px，
+      与齿轮导轨态一致。<br>
+      <b>注意圆角</b>：齿轮导轨态保留 <code>--dsw-radius-md</code>（12px），
+      而同排的 mobile 控件会变成 <code>50%</code> 圆形——我按<b>齿轮</b>来，
+      所以是圆角方块而不是圆。</p>
+    <div class="grid">
+      <div class="railbox">
+        <span class="railbtn" data-i="panel"></span>
+        <span class="railbtn ours" data-i="refresh"></span>
+        <span class="railbtn" data-i="gear"></span>
+      </div>
+      <div style="align-self:center;font-size:12px;color:#6b7280">
+        ↑ 收起后<br>三个按钮<br>形状一致
+      </div>
+    </div>
+    <p class="note">56px 装不下文字，所以只留图标；<b>无障碍名</b>仍然完整。</p>
+  </section>
+
+  <!-- SKIN -->
+  <section class="col">
+    <h2>有皮肤时（claude-style）</h2>
+    <span class="tag cur">皮肤收进菜单</span>
+    <p class="why">皮肤的「收起侧边栏设置区」把这一行收进账号菜单，并渲染成菜单项。
+      图标沿用同一份官方图形，所以风格与「设置 / 退出登录」一致。</p>
+    <div class="side">
+      <div class="ghost s"></div><div class="ghost m"></div><div class="ghost s"></div>
+      <div class="spacer"></div>
+      <div class="pop">
+        <div class="name">:D</div><div class="sep"></div>
+        <div class="row ours"><span class="ic" data-i="refresh"></span><span class="tx">重启 DeepSeek Harness</span></div>
+        <div class="row"><span class="ic" data-i="mobile"></span><span class="tx">移动访问</span></div>
+        <div class="row"><span class="ic" data-i="gear"></span><span class="tx">设置</span><span class="kb">Ctrl+,</span></div>
+        <div class="row hot"><span class="ic" data-i="send"></span><span class="tx">意见反馈</span></div>
+        <div class="row"><span class="ic" data-i="out"></span><span class="tx">退出登录</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:8px 10px 2px;font-size:13px">
+          <span style="width:25px;height:25px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:11px;background:linear-gradient(135deg,#9aa1ad,#c4c9d1);color:#fff">:D</span>
+          <span>:D</span><span style="margin-left:auto;color:#9aa1ad;font-size:11px">▼</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // The restart glyph is the official IconRefreshOutline artwork, byte for byte:
+  // 16x16 box, 1.3 medium stroke, currentColor.
+  const REFRESH = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-width="1.3" aria-hidden="true">'
+    + '<path stroke="currentColor" d="M14.5001 8C14.5 9.28552 14.1188 10.5422 13.4045 11.611C12.6903 12.6799 11.6752 13.5129 10.4875 14.0049C9.29982 14.4968 7.99295 14.6255 6.73212 14.3747C5.4713 14.124 4.31314 13.505 3.4041 12.596C2.49514 11.687 1.87614 10.5288 1.62537 9.26798C1.37459 8.00716 1.50331 6.70028 1.99525 5.51261C2.48719 4.32494 3.32025 3.30981 4.3891 2.59557C5.45795 1.88134 6.71458 1.50008 8.0001 1.5C9.9001 1.5 11.7001 2.3 13.0001 3.6L14.5001 5.1"/>'
+    + '<path stroke="currentColor" d="M14.4999 1.5V5.1H10.8999"/></svg>';
+  const S = (inner) => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" '
+    + 'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  const ICONS = {
+    refresh: REFRESH,
+    gear: S('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 7.5 19.4l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3 13.6H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8.5l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 6.09V6a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.91 13H21a2 2 0 1 1 0 4h-.09"/>'),
+    mobile: S('<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>'),
+    panel: S('<rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M9 3v18"/>'),
+    send: S('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>'),
+    out: S('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'),
+  };
+  for (const el of document.querySelectorAll('[data-i]')) el.innerHTML = ICONS[el.dataset.i] || '';
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Desktop Restart",
+    "description": "A Restart button in the sidebar foot: restarts the desktop app in one click instead of quitting from the tray and relaunching by hand."
+  }
+}
