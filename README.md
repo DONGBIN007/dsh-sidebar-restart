@@ -1,9 +1,39 @@
-# dsh-desktop-restart
+# dsh-sidebar-restart
 
 One row in the sidebar foot, beside the settings gear: restarts the DSH desktop
 app in a single click, instead of quitting from the tray and relaunching by hand.
 
 [![三种形态](docs/placement-options.png)](docs/placement-options.png)
+
+## Install
+
+```sh
+dsh plugin --profile desktop add dsh-sidebar-restart   # once it is on npm
+```
+
+or straight from the repository:
+
+```sh
+dsh plugin --profile desktop add github:DONGBIN007/dsh-sidebar-restart
+```
+
+Then restart the app once by hand so the plugin loads — which is the last time you
+have to do that, since this button is what you use from then on.
+
+**Desktop only.** On a plain `dsh web` profile the row renders disabled and says
+why; there is no desktop process to replace there. If you wanted the *Web server*
+restarted, that is a different plugin
+([`dsh-restart-button`](https://github.com/hadesybil-hub/dsh-restart-button)).
+
+## What it does, in one line
+
+Adds a **Restart** row to the desktop app's sidebar foot beside Settings. Clicking
+it asks the Host to restart; a detached helper kills the Electron main process and
+the Host by PID, waits until both are gone, starts the app again, and the tab
+reloads itself once the replacement answers with a new boot id — so a plugin you
+installed a moment ago is actually running afterwards.
+
+<img src="assets/sidebar-foot.png" alt="The Restart row above Settings in the sidebar foot" width="380">
 
 ## The control is a copy of the gear row next door
 
