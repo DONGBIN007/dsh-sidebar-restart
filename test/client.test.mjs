@@ -28,10 +28,20 @@ const CODE = CLIENT.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/^\s*\/\/[^\n]*$/g
 
 test('client half registers the lazy factory the module loader requires', () => {
   assert.match(CLIENT, /window\.__ModuleLoader__\.load\(\{/u)
-  assert.match(CLIENT, /id: '@local\/dsh-desktop-restart'/u)
-  // React is the only module a plain client bundle may ask for.
+  // The factory id must equal the package name. The page requests a bundle by
+  // PACKAGE name and executes it; if the id it registers is something else, that
+  // first execution registers an id nobody asked for, the page then requests the
+  // real name as well, and the bundle runs TWICE - which the client-modules host
+  // rejects with "duplicate factory registration", taking the whole web boot
+  // down with it (this is not hypothetical: it is the crash this was fixed for).
+  // Pinning the literal 'dsh-sidebar-restart' instead of asserting the equality
+  // would let the two drift apart again.
+  const name = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).name
+  assert.match(CLIENT, new RegExp(`id: '${name.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}'`, 'u'))
+  assert.equal(/id: '@local\//u.test(CODE), false, 'the id is the package name, not a scoped alias')
+  // React and ReactDOM are the only modules a plain client bundle may ask for.
   const requires = [...CODE.matchAll(/require\(([^)]+)\)/gu)].map((m) => m[1].trim())
-  assert.deepEqual([...new Set(requires)], ["'react'"])
+  assert.deepEqual([...new Set(requires)], ["'react'", "'react-dom'"])
 })
 
 test('client half asks for no Harness Client package', () => {
@@ -125,11 +135,19 @@ test('the row bleeds like the gear row, so the two left edges line up', () => {
   const buttonStyle = CODE.match(/button:\s*\{[\s\S]*?\n(\s*)\},/u)?.[0] ?? ''
   assert.notEqual(buttonStyle, '', 'the button style object was located')
   assert.match(buttonStyle, /width: 'calc\(100% \+ 4px\)'/u, 'the gear row bleed')
-  assert.match(buttonStyle, /margin: '4px -2px'/u, 'the matching negative margin')
+  // The bleed's margin is written as four longhands, not as `margin: '4px -2px'`.
+  // React assigns a margin shorthand wholesale, so a shorthand here and a
+  // shorthand in the rail override below would make the two depend on spread
+  // order alone; longhands keep the override partial and explicit.
+  assert.match(buttonStyle, /marginLeft: '-2px'/u, 'the matching negative margin')
+  assert.match(buttonStyle, /marginRight: '-2px'/u)
+  assert.equal(/margin: '4px -2px'/u.test(buttonStyle), false, 'no margin shorthand')
   // The rail overrides both, so the bleed must not leak into the 56px column.
   const railStyle = CODE.match(/rail:\s*\{[\s\S]*?\n(\s*)\},/u)?.[0] ?? ''
   assert.match(railStyle, /width: '36px'/u)
-  assert.match(railStyle, /margin: '8px 0 10px'/u)
+  assert.match(railStyle, /marginTop: '8px'/u)
+  assert.match(railStyle, /marginBottom: '10px'/u)
+  assert.equal(/margin: '8px 0 10px'/u.test(railStyle), false, 'no margin shorthand')
 })
 
 test('the colour is the gear primary label colour, not the secondary one', () => {
@@ -207,17 +225,57 @@ test('the rail radius matches the GEAR, not the mobile control', () => {
   assert.match(railStyle, /borderRadius: 'var\(--dsw-radius-md\)'/u)
   assert.equal(/'50%'/u.test(railStyle), false, 'not the circle')
   // The gear's rail row spacing, which this button carries itself.
-  assert.match(railStyle, /margin: '8px 0 10px'/u)
+  assert.match(railStyle, /marginTop: '8px'/u)
+  assert.match(railStyle, /marginBottom: '10px'/u)
 })
 
 test('no literal colours outside artwork overlays', () => {
   // Every colour a user sees in light and dark must come from a theme token.
-  // The exceptions are the scrim, the on-brand primary button text, and
-  // `transparent` (a keyword, not a colour the theme should own).
+  // The exceptions are the scrim and `transparent` (a keyword, not a colour the
+  // theme should own). `#fff` is deliberately NOT exempt: the primary action runs
+  // on `--dsw-alias-brand-primary`, which is a light brand colour in the light
+  // theme, and hard-coded white text on it is unreadable there. The on-brand
+  // foreground token is what the host's own primary buttons use.
   const literals = [...CODE.matchAll(/(?:background|color):\s*'([^']+)'/gu)]
     .map((m) => m[1])
     .filter((value) => !value.startsWith('var(') && value !== 'transparent')
-  assert.deepEqual(literals.sort(), ['#fff', 'rgba(0, 0, 0, 0.45)'])
+  assert.deepEqual(literals.sort(), ['rgba(0, 0, 0, 0.45)'])
+  // The dialog's primary button still sets its foreground - from a token.
+  assert.match(CODE, /--dsw-alias-label-primary-foreground/u)
+})
+
+test('a dialog is portalled to the body, never rendered inside the sidebar', () => {
+  // `position: fixed` only means "the viewport" while no ancestor establishes a
+  // containing block. The sidebar's scrollers - and any container a theme adds
+  // behind them (`transform`, `filter`, `contain`, `will-change`) - do exactly
+  // that, at which point `inset: 0` becomes "the whole sidebar column": the
+  // overlay is clipped into the 56px rail, the flex row stretches it, and the
+  // dialog shows up smeared into the menu as a second, greyed-out row.
+  // Portalling is the only fix that does not depend on every ancestor's styles.
+  assert.match(CODE, /require\('react-dom'\)/u)
+  assert.match(CODE, /ReactDOM\.createPortal\(/u)
+  // It must be pointed at the document body, not at the seat.
+  assert.match(CODE, /document\.body/u)
+  // And the dialog's return value is the portal, not a bare element.
+  const dialog = CODE.match(/function Dialog\(\{ children, onClose, labelledBy \}\)[\s\S]*?\n    \}/u)?.[0] ?? ''
+  assert.notEqual(dialog, '', 'the Dialog component was located')
+  assert.match(dialog, /return ReactDOM\.createPortal\(/u)
+})
+
+test('the status probe retries, so one early miss cannot grey the button forever', () => {
+  // The host mounts these routes as the app boots while the sidebar renders as
+  // soon as the client bundle is up, so a freshly loaded page can probe before
+  // the host half listens. A single attempt would latch `failed` and leave the
+  // one control whose purpose is "install, then restart" dead until a manual
+  // reload. The retry is bounded so a genuinely non-desktop host still settles.
+  assert.match(CODE, /const STATUS_RETRY_MS = \d+/u)
+  assert.match(CODE, /const STATUS_RETRY_LIMIT = \d+/u)
+  assert.match(CODE, /attempts >= STATUS_RETRY_LIMIT/u)
+  assert.match(CODE, /window\.setTimeout\(probe, STATUS_RETRY_MS\)/u)
+  // A pending retry is cleared when the component goes away.
+  const probe = CODE.match(/function useStatus\(\)[\s\S]*?\n    \}/u)?.[0] ?? ''
+  assert.notEqual(probe, '', 'the hook was located')
+  assert.match(probe, /window\.clearTimeout\(timer\)/u)
 })
 
 test('the registry seat and its registration are unchanged', () => {

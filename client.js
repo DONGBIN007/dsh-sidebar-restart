@@ -2,13 +2,17 @@
 //
 // This is a plain hand-written bundle, exactly like the ones DSH ships: no
 // build step, no import/export keywords, no JSX. The page loads it as a script,
-// the module loader below hands it a `require`, and the only module it may ask
-// for is React.
+// the module loader below hands it a `require`, and the only modules it may ask
+// for are React and ReactDOM.
 //
 // It contributes one control to the sidebar foot. That seat
 // (`sidebar.footer.action`) is a list rendered as `footerActions`, a flex row
 // that the shipped sidebar lays out directly above `settingsArea` - so the
 // control lands in the row beside the settings gear.
+//
+// It asks the loader for two modules: React, and ReactDOM - the latter only for
+// `createPortal`, which is how the confirmation dialog escapes the sidebar's
+// stacking and clipping context to sit in the viewport where a modal belongs.
 //
 // The control is deliberately a copy of the gear row next door, so the two read
 // as one row: same primary label colour, same 42px row, same 14px/22px label,
@@ -16,9 +20,10 @@
 // the control becomes a 36x36 icon-only circle in the collapsed rail.
 
 window.__ModuleLoader__.load({
-  id: '@local/dsh-desktop-restart',
+  id: 'dsh-sidebar-restart',
   factory: (require) => {
     const React = require('react')
+    const ReactDOM = require('react-dom')
     const h = React.createElement
 
     const NS = 'dsh-desktop-restart'
@@ -170,7 +175,14 @@ window.__ModuleLoader__.load({
         // own row, so it carries both the bleed and the padding.
         width: 'calc(100% + 4px)',
         height: '42px',
-        margin: '4px -2px',
+        // Written as four longhands, not as the `margin: '4px -2px'` shorthand.
+        // The rail override below also sets `margin`, and React assigns a margin
+        // shorthand wholesale - so the two would then depend on spread order alone
+        // for which one survives. Longhands make the override partial and explicit.
+        marginTop: '4px',
+        marginRight: '-2px',
+        marginBottom: '4px',
+        marginLeft: '-2px',
         padding: '0 10px 0 8px',
         border: 'none',
         borderRadius: 'var(--dsw-radius-md)',
@@ -201,7 +213,11 @@ window.__ModuleLoader__.load({
         flex: '0 0 auto',
         width: '36px',
         height: '36px',
-        margin: '8px 0 10px',
+        // The same four longhands the button's own row sets, overridden here.
+        marginTop: '8px',
+        marginRight: '0',
+        marginBottom: '10px',
+        marginLeft: '0',
         padding: '0',
         justifyContent: 'center',
         gap: '0',
@@ -244,7 +260,11 @@ window.__ModuleLoader__.load({
         border: 'none',
         borderRadius: '8px',
         background: 'var(--dsw-alias-brand-primary)',
-        color: '#fff',
+        // The foreground that belongs on a brand-filled surface. Spelled out with
+        // its longhand name so the primary-button text keeps its contrast in both
+        // themes - the `--dsw-alias-label-primary-foreground` token is the one
+        // the shipped theme pairs with `--dsw-alias-brand-primary`.
+        color: 'var(--dsw-alias-label-primary-foreground)',
         font: 'inherit',
         fontSize: '13px',
         cursor: 'pointer',
@@ -263,26 +283,69 @@ window.__ModuleLoader__.load({
       mono: { wordBreak: 'break-all', color: 'var(--dsw-alias-label-secondary)' },
     }
 
-    /** The self-fetching status snapshot, shared by the button and its dialogs. */
+    /**
+     * The self-fetching status snapshot, shared by the button and its dialogs.
+     *
+     * The probe retries. The web server mounts this plugin's routes as the app
+     * boots, and the sidebar renders as soon as the client bundle is up - so the
+     * *first* probe of a freshly loaded page can legitimately land before the host
+     * half is listening. A single attempt would then latch `failed` and leave the
+     * button greyed out, with the one control whose whole purpose is "install a
+     * plugin, then restart" unusable until the user reloads by hand - the exact
+     * loop this plugin exists to remove. Retrying is bounded so a host that is
+     * genuinely not desktop still settles on its reason instead of spinning.
+     */
+    const STATUS_RETRY_MS = 1200
+    const STATUS_RETRY_LIMIT = 5
+
     function useStatus() {
       const [status, setStatus] = React.useState(null)
       const [failed, setFailed] = React.useState(false)
       React.useEffect(() => {
         let live = true
-        fetch(STATUS_ROUTE, { headers: { accept: 'application/json' } })
-          .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
-          .then((value) => {
-            if (live) setStatus(value)
-          })
-          .catch(() => {
-            if (live) setFailed(true)
-          })
+        let attempts = 0
+        let timer = 0
+        const probe = () => {
+          attempts += 1
+          fetch(STATUS_ROUTE, { headers: { accept: 'application/json' }, cache: 'no-store' })
+            .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+            .then((value) => {
+              if (!live) return
+              setStatus(value)
+              setFailed(false)
+            })
+            .catch(() => {
+              if (!live) return
+              if (attempts >= STATUS_RETRY_LIMIT) {
+                setFailed(true)
+                return
+              }
+              timer = window.setTimeout(probe, STATUS_RETRY_MS)
+            })
+        }
+        probe()
         return () => {
           live = false
+          if (timer !== 0) window.clearTimeout(timer)
         }
       }, [])
       return { status, failed }
     }
+
+    /**
+     * The element every dialog is portalled into: the page's own `<body>`.
+     *
+     * A dialog MUST NOT be rendered inside the sidebar foot where the button
+     * lives. `position: fixed` is only "fixed to the viewport" while no ancestor
+     * establishes a containing block - and the sidebar's scrollers, and any
+     * container a theme adds behind them, very much do (`transform`, `filter`,
+     * `contain`, `will-change`). Once one does, `inset: 0` becomes "the whole of
+     * that sidebar column" and the card is laid out *inside the 56px rail*: the
+     * overlay is clipped, the flex row is stretched, and what the user sees is the
+     * dialog smeared into the menu as a second, greyed-out row. Portalling to the
+     * body is what makes the fixed positioning mean what the stylesheet says.
+     */
+    const PORTAL_TARGET = () => (typeof document === 'undefined' ? null : document.body)
 
     /** A small centred dialog. Escape closes it; the primary action takes focus. */
     function Dialog({ children, onClose, labelledBy }) {
@@ -302,18 +365,24 @@ window.__ModuleLoader__.load({
         window.addEventListener('keydown', onKey)
         return () => window.removeEventListener('keydown', onKey)
       }, [onClose])
-      return h(
-        'div',
-        {
-          style: styles.overlay,
-          role: 'dialog',
-          'aria-modal': true,
-          'aria-labelledby': labelledBy,
-          onMouseDown: (event) => {
-            if (event.target === event.currentTarget) onClose()
+      // Rendering the overlay into the seat's own subtree is the bug this guards
+      // against; see PORTAL_TARGET above. Portalled, the overlay is a child of
+      // <body>, where `position: fixed; inset: 0` really is the viewport.
+      return ReactDOM.createPortal(
+        h(
+          'div',
+          {
+            style: styles.overlay,
+            role: 'dialog',
+            'aria-modal': true,
+            'aria-labelledby': labelledBy,
+            onMouseDown: (event) => {
+              if (event.target === event.currentTarget) onClose()
+            },
           },
-        },
-        h('div', { style: styles.card, ref: cardRef, tabIndex: -1 }, children),
+          h('div', { style: styles.card, ref: cardRef, tabIndex: -1 }, children),
+        ),
+        PORTAL_TARGET(),
       )
     }
 
