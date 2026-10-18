@@ -3,6 +3,10 @@
 One row in the sidebar foot, beside the settings gear: restarts the DSH desktop
 app in a single click, instead of quitting from the tray and relaunching by hand.
 
+![The Restart row above Settings in the desktop app](docs/usage-desktop.png)
+
+![The same row in the mobile drawer, label included](docs/usage-phone.png)
+
 [![三种形态](docs/placement-options.png)](docs/placement-options.png)
 
 ## Install
@@ -34,6 +38,16 @@ reloads itself once the replacement answers with a new boot id — so a plugin y
 installed a moment ago is actually running afterwards.
 
 <img src="assets/sidebar-foot.png" alt="The Restart row above Settings in the sidebar foot" width="380">
+
+## What it looks like
+
+| Desktop app (wide sidebar) | Mobile drawer |
+|---|---|
+| ![desktop](docs/usage-desktop.png) | ![mobile](docs/usage-phone.png) |
+
+Both follow the host's own rule rather than a breakpoint of mine: the label appears
+exactly where the host shows one for the gear, i.e. when the sidebar is wide. In the
+narrow 56px rail the row stays icon-only and keeps the gear's 36×36 target.
 
 ## The control is a copy of the gear row next door
 

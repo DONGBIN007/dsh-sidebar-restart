@@ -1,0 +1,163 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>重启按钮 · 使用截图</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#ffffff; --hi:#f1f3f6; --line:#e6e8eb;
+    --label-primary:#16181d; --label-secondary:#5c6370; --border:#dfe2e6;
+    --accent:#d97757; --radius-md:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;overflow:hidden;background:#eef0f3;color:#16181d;
+       font:14px/1.5 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  .stage{display:flex;gap:20px;align-items:flex-start;padding:20px}
+  .card{background:#fff;border:1px solid #e2e4e8;border-radius:12px;overflow:hidden;
+        box-shadow:0 10px 30px rgba(15,23,42,.08);border-radius:12px}
+
+  /* ---------- desktop app window ---------- */
+  .win{width:980px;height:660px;display:flex;flex-direction:column;background:#fff}
+  .titlebar{height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;
+            background:#f7f8fa;border-bottom:1px solid var(--line);font-size:12px;color:#6b7280}
+  .dots{display:flex;gap:6px}
+  .dots i{width:10px;height:10px;border-radius:50%;display:block}
+  .body{flex:1;display:flex;min-height:0}
+
+  /* sidebar */
+  .sb{width:240px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;
+      padding:10px 8px 8px;background:#fff}
+  .newchat{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-radius:var(--radius-md);
+           border:1px solid var(--border);font-size:13.5px;color:var(--label-primary);margin-bottom:10px}
+  .conv{display:flex;flex-direction:column;gap:2px;overflow:hidden}
+  .conv div{height:32px;border-radius:8px;padding:0 10px;display:flex;align-items:center;
+            font-size:13px;color:var(--label-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .conv .sel{background:var(--hi);color:var(--label-primary)}
+  .spacer{flex:1}
+
+  /* the foot: plugin row + gear row, exactly as the host stacks them */
+  .foot{display:flex;flex-direction:column;border-top:1px solid var(--line);padding:4px 0 2px;margin:0 0 0 0}
+  .gear{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:42px;
+        margin:4px 0;padding:0 10px 0 8px;border:none;border-radius:var(--radius-md);
+        background:transparent;color:var(--label-primary);font:inherit;font-size:14px;line-height:22px;
+        cursor:pointer;text-align:left}
+  .gear:hover{background:var(--hi)}
+  .gear .ic{width:16px;height:16px;flex:none;display:flex}
+  .gear .kbd{margin-left:auto;font-size:12px;color:#9aa1ad}
+  .tagline{position:relative}
+
+  /* main pane */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .mhead{height:44px;flex:none;display:flex;align-items:center;padding:0 18px;font-size:13px;
+         color:var(--label-secondary);border-bottom:1px solid var(--line)}
+  .chat{flex:1;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+  .bub{max-width:74%;padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.65}
+  .me{align-self:flex-end;background:var(--hi)}
+  .ai{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+  .composer{margin:0 18px 16px;border:1px solid var(--border);border-radius:14px;padding:10px 12px;
+            display:flex;align-items:center;gap:8px;color:#9aa1ad;font-size:13px;min-height:52px}
+
+  /* ---------- phone ---------- */
+  .phone{width:392px;height:700px;background:#fff;display:flex;flex-direction:column;
+         border-radius:26px;overflow:hidden}
+  .pstatus{height:26px;flex:none;display:flex;align-items:center;justify-content:space-between;
+           padding:0 18px;font-size:11px;color:#6b7280;background:#f7f8fa}
+  .pdrawer{flex:1;display:flex;flex-direction:column;padding:10px 10px 8px;background:#fff}
+
+  .callout{position:absolute;font-size:11.5px;color:#a9522f;background:#fff;
+           border:1px solid rgba(217,119,87,.55);border-radius:7px;padding:2px 7px;white-space:nowrap}
+  svg{display:block}
+</style>
+</head>
+<body>
+<div class="stage" style="gap:24px">
+
+  <!-- ============ 1. desktop wide ============ -->
+  <div class="card">
+    <div class="win">
+      <div class="titlebar">
+        <span class="dots">
+          <i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
+        </span>
+        <span style="margin-left:6px">DeepSeek Harness</span>
+      </div>
+      <div class="body">
+        <div class="sb">
+          <div class="newchat"><span data-i="plus"></span>新建对话</div>
+          <div class="conv">
+            <div class="sel">插件重启后如何生效</div>
+            <div>侧边栏底部的对齐问题</div>
+            <div>整理一下这个仓库的 README</div>
+            <div>关于 Cordis 加载顺序</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="foot">
+            <button class="gear" id="restartRow">
+              <span class="ic" data-i="refresh"></span>
+              <span class="label">重启</span>
+            </button>
+            <button class="gear">
+              <span class="ic" data-i="gear"></span>
+              <span class="label">设置</span>
+              <span class="kbd">Ctrl+,</span>
+            </button>
+          </div>
+        </div>
+        <div class="main">
+          <div class="mhead">插件重启后如何生效</div>
+          <div class="chat">
+            <div class="bub me">装完插件为什么还得去托盘右键退出，再点桌面图标打开？</div>
+            <div class="bub ai">因为宿主是随桌面端启动的子进程，装完插件后它还在跑旧代码。<br>
+              现在侧边栏底下多了「重启」入口 — 就在「设置」上面一行，点一下，确认后应用会整个重启，页面重连时直接加载刚装好的插件包。</div>
+            <div class="bub me">那它和齿轮样式一致吗？</div>
+            <div class="bub ai">一致：同一行高 42px、同一字号 14px/22px、同一个主文本色，图标用的是官方 refresh 图形。</div>
+          </div>
+          <div class="composer">给 DeepSeek Harness 发送消息…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. phone drawer ============ -->
+  <div class="card">
+    <div class="phone">
+      <div class="pstatus"><span>23:26</span><span>5G ▮▮▮ 82%</span></div>
+      <div class="pdrawer">
+        <div class="newchat"><span data-i="plus"></span>新建对话</div>
+        <div class="conv">
+          <div class="sel">手机上的侧边栏</div>
+          <div>昨天那个插件装好了吗</div>
+          <div>帮我看下这个报错</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="foot">
+          <button class="gear">
+            <span class="ic" data-i="refresh"></span>
+            <span class="label">重启</span>
+          </button>
+          <button class="gear">
+            <span class="ic" data-i="gear"></span>
+            <span class="label">设置</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const REFRESH = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-width="1.3" aria-hidden="true">'
+    + '<path stroke="currentColor" d="M14.5001 8C14.5 9.28552 14.1188 10.5422 13.4045 11.611C12.6903 12.6799 11.6752 13.5129 10.4875 14.0049C9.29982 14.4968 7.99295 14.6255 6.73212 14.3747C5.4713 14.124 4.31314 13.505 3.4041 12.596C2.49514 11.687 1.87614 10.5288 1.62537 9.26798C1.37459 8.00716 1.50331 6.70028 1.99525 5.51261C2.48719 4.32494 3.32025 3.30981 4.3891 2.59557C5.45795 1.88134 6.71458 1.50008 8.0001 1.5C9.9001 1.5 11.7001 2.3 13.0001 3.6L14.5001 5.1"/>'
+    + '<path stroke="currentColor" d="M14.4999 1.5V5.1H10.8999"/></svg>';
+  const S = (inner) => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" '
+    + 'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  const ICONS = {
+    refresh: REFRESH,
+    plus: S('<path d="M12 5v14"/><path d="M5 12h14"/>'),
+    gear: S('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 7.5 19.4l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3 13.6H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8.5l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 6.09V6a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 2.82 1.17l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.91 13H21a2 2 0 1 1 0 4h-.09"/>'),
+  };
+  for (const el of document.querySelectorAll('[data-i]')) el.innerHTML = ICONS[el.dataset.i] || '';
+</script>
+</body>
+</html>
